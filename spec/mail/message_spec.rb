@@ -2036,4 +2036,11 @@ describe Mail::Message do
     end
   end
 
+  describe '#date' do
+    it 'correctly parses Gmail REST formats' do
+      mail = Mail.read_from_string(File.read(fixture('emails/google_date_email')))
+      assert !mail.date.nil?
+    end
+  end
+
 end
