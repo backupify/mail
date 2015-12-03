@@ -75,7 +75,7 @@ describe Mail::Encodings do
     # the encoded-word would contain an exact multiple of 3 encoded
     # octets), except that the second 'encoded-word' uses a different
     # 'charset' than the first one.
-    #
+
     it "should just return the string if us-ascii and asked to B encoded string" do
       string = "This is a string"
       result = "This is a string"
@@ -133,7 +133,7 @@ describe Mail::Encodings do
     it "should decode a long encoded string" do
       string = '=?UTF-8?B?VGhpcyBpcyDjgYIgcmVhbGx5IGxvbmcgc3RyaW5nIFRoaXMgaXMg44GCIHJl?= =?UTF-8?B?YWxseSBsb25nIHN0cmluZyBUaGlzIGlzIOOBgiByZWFsbHkgbG9uZyBzdHJp?= =?UTF-8?B?bmcgVGhpcyBpcyDjgYIgcmVhbGx5IGxvbmcgc3RyaW5nIFRoaXMgaXMg44GC?= =?UTF-8?B?IHJlYWxseSBsb25nIHN0cmluZw==?='
       result = "This is あ really long string This is あ really long string This is あ really long string This is あ really long string This is あ really long string"
-      result.force_encoding('UTF-8') if RUBY_VERSION >= '1.9'
+      result.encode!('UTF-8') if RUBY_VERSION >= '1.9'
       expect(Mail::Encodings.value_decode(string)).to eq result
     end
 
@@ -706,7 +706,6 @@ describe Mail::Encodings do
       encoded = "=?ISO-8859-1?Q?\nRe=3A_ol=E1?="
       expect(Mail::Encodings.value_decode(encoded)).to eq expected
     end
-
   end
 
   describe "pre encoding non usascii text" do

@@ -115,27 +115,25 @@ module Mail
     def Encodings.value_decode(str)
       # Optimization: If there's no encoded-words in the string, just return it
       return str unless str =~ ENCODED_VALUE
-
-      lines = collapse_adjacent_encodings(str)
-
-      # Split on white-space boundaries with capture, so we capture the white-space as well
-      lines.each do |line|
-        line.gsub!(ENCODED_VALUE) do |string|
-          case $1
+      lines = collapse_adjacent_encodings(str).collect do |line|
+        match = line.match(ENCODED_VALUE)
+        if match
+          string, type = match[0], match[1]
+          case type
           when *B_VALUES then b_value_decode(string)
           when *Q_VALUES then q_value_decode(string)
           end
+        else
+          line
         end
       end.join("")
     end
 
     # Takes an encoded string of the format =?<encoding>?[QB]?<string>?=
     def Encodings.unquote_and_convert_to(str, to_encoding)
-      output = value_decode( str ).to_s # output is already converted to UTF-8
+      output = value_decode( str )
 
-      if 'utf8' == to_encoding.to_s.downcase.gsub("-", "")
-        output
-      elsif to_encoding
+      if to_encoding
         begin
           if RUBY_VERSION >= '1.9'
             output.encode(to_encoding)
@@ -268,22 +266,56 @@ module Mail
     #
     # String has to be of the format =?<encoding>?[QB]?<string>?=
     def Encodings.collapse_adjacent_encodings(str)
-      lines = str.split(/(\?=)\s*(=\?)/).each_slice(2).map(&:join)
-      results = []
-      previous_encoding = nil
+      return [] if str.empty?
+      offset = 0 # initialize offset to 0
 
-      lines.each do |line|
-        encoding = split_value_encoding_from_string(line)
-
-        if encoding == previous_encoding
-          line = results.pop + line
-        end
-
-        previous_encoding = encoding
-        results << line
+      beginMarker = str.index("=?")
+      # if no begin marker not a valid encoded string.
+      if beginMarker == nil
+        return Array(str)
       end
 
-      results
+      # incremenet offset by the begin marker's offset and length.
+      offset = beginMarker + 2
+
+      encoding_seperator = str.index("?", offset)
+      # if no encoding seperator not a valid encoded string.
+      if encoding_seperator == nil
+        return Array(str)
+      end
+
+      # increment offset by the encoding seperator's offset and length.
+      offset = encoding_seperator + 1
+
+      type_character = str.index("?", offset)
+      # if no type character not a valid encoded string.
+      if type_character == nil
+        return Array(str)
+      end
+
+      # increment offset by the type character seperator's offset and length.
+      offset = type_character + 1 # increment offset by the seperator length
+
+      endMarker = str.index("?=", offset)
+      # if no end marker not a valid encoded string.
+      if endMarker == nil
+        return Array(str)
+      end
+
+      # incremenet offset by the endMarker's offset and length.
+      offset = endMarker + 2
+
+      result = []
+      # emit the substring before the beginMarker (if any)
+      if beginMarker != 0
+        substr = str[0..beginMarker-1]
+        # only emit if not a blank string.
+        result << substr if !substr.blank?
+      end
+
+      result << str[beginMarker..offset-1]
+      # return the encoded characters section
+      return result.concat(collapse_adjacent_encodings(str[offset..-1]))
     end
   end
 end
