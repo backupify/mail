@@ -261,9 +261,7 @@ module Mail
 
         filename = process_unsafe_string(raw_filename)
 
-        encoded_filename = Mail::Encodings.b_value_encode(filename)
-
-        header_parts[idx] = "name=\"#{encoded_filename}\""
+        header_parts[idx] = "filename=\"#{Mail::Encodings.q_value_encode(filename)}"
 
         binding.pry
 
@@ -272,6 +270,7 @@ module Mail
         # # Are we supposed to put a newline before the =?UTF-8? at the end?
         # header_parts[idx] = "name=\"=?UTF-8?Q?#{encoded}.?==?UTF-8?Q?txt?="
       end
+
 
       header_parts.join('; ')
     end
