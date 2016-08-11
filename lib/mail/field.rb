@@ -234,8 +234,8 @@ module Mail
 
       header_parts = raw_field.split('filename=')
       filename = header_parts[1]
-      filename = process_unsafe_string(filename).strip[1..-2]
-      [header_parts.first, "filename*=", Mail::Encodings.param_encode(filename),].encode!(Encoding::ASCII)
+      filename = process_unsafe_string(filename).gsub(/(^"|"$)/, '')
+      [header_parts.first, "filename*=", Mail::Encodings.param_encode(filename),].join.encode!(Encoding::ASCII)
       # [header_parts[0], "filename*=UTF-8''", ERB::Util.url_encode(filename),].join.encode!(Encoding::ASCII)
     end
 
