@@ -1,4 +1,5 @@
 require 'mail/fields'
+require 'charlock_holmes'
 
 # encoding: utf-8
 module Mail
@@ -221,7 +222,9 @@ module Mail
     end
 
     def process_unsafe_string(raw_field)
-      encoding = self.class.detector.detect(raw_field).try(:[], :encoding) || Encoding::UTF_8
+      detection_obj = self.class.detector.detect(raw_field)
+
+      encoding = detection_obj.nil? ? detection_obj[:encoding] : Encoding::UTF_8
 
       double_encode(raw_field.force_encoding(encoding), invalid: :replace, undef: :replace, replace: '_')
     end
