@@ -239,14 +239,6 @@ module Mail
       # [header_parts[0], "filename*=UTF-8''", ERB::Util.url_encode(filename),].join.encode!(Encoding::ASCII)
     end
 
-    # def get_utf8_hex_safe_char(ch)
-    #   if ch.ascii_only?
-    #     ch
-    #   else
-    #     ch.bytes.map { |s| '=' << s.to_s(16) }.join
-    #   end
-    # end
-
     def process_content_type(raw_field)
       return raw_field unless raw_field.start_with?('Content-Type') && raw_field.include?('name=')
 
@@ -255,22 +247,17 @@ module Mail
       header_parts = raw_field.split(';').map { |s| s.strip }
 
       header_parts.each_with_index do |part, idx|
-        next unless part.start_with?('name')
+        key = part.split('=').first.strip
 
-        raw_filename = part.sub(/^\s*name=\s*/, '')
+        next unless %w(filename name).include?(key)
 
-        filename = process_unsafe_string(raw_filename)
+        raw_filename = part.sub(/^\s*(file)?name\s*=\s*/, '')
+
+        filename = process_unsafe_string(raw_filename).gsub(/(^"|"$)/, '')
 
         encoded_filename = Mail::Encodings.b_value_encode(filename)
 
-        header_parts[idx] = "name=\"#{encoded_filename}\""
-
-        binding.pry
-
-        # encoded = filename.chars.map { |c| get_utf8_hex_safe_char(c) }.join
-        #
-        # # Are we supposed to put a newline before the =?UTF-8? at the end?
-        # header_parts[idx] = "name=\"=?UTF-8?Q?#{encoded}.?==?UTF-8?Q?txt?="
+        header_parts[idx] = "#{key}=\"#{encoded_filename}\""
       end
 
       header_parts.join('; ')
