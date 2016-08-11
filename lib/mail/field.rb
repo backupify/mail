@@ -228,15 +228,13 @@ module Mail
 
     def process_content_disposition(raw_field)
       return raw_field unless raw_field.start_with?('Content-Disposition') && raw_field.include?('filename=')
-
-      # Might want to check ascii_only?
+      
       return raw_field if string_is_valid?(raw_field)
 
       header_parts = raw_field.split('filename=')
       filename = header_parts[1]
       filename = process_unsafe_string(filename).gsub(/(^"|"$)/, '')
       [header_parts.first, "filename*=", Mail::Encodings.param_encode(filename),].join.encode!(Encoding::ASCII)
-      # [header_parts[0], "filename*=UTF-8''", ERB::Util.url_encode(filename),].join.encode!(Encoding::ASCII)
     end
 
     def process_content_type(raw_field)
