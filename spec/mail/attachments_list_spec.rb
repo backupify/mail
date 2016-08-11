@@ -222,6 +222,19 @@ describe "Attachments" do
 end
 
 describe "reading emails with attachments" do
+
+  describe "attachments with filenames with invalid encodings" do
+    it "should be able to read the filename of an attachment with improperly included UTF-8 chars" do
+      msg = Mail.read(fixture('emails', 'attachment_emails', 'invalid_attachment_filename_encoding_utf8.eml'))
+      expect(msg.attachments.first.filename).to eq 'とんでもないすぐこ長い文字列.txt'
+    end
+
+    it "should be able to read the filename of an attachment with improperly included Shift-JIS chars" do
+      msg = Mail.read(fixture('emails', 'attachment_emails', 'invalid_attachment_filename_encoding_shift_jis.eml'))
+      expect(msg.attachments.first.filename).to eq 'とんでもないすぐこ長い文字列.txt'
+    end
+  end
+
   describe "test emails" do
 
     it "should find the attachment using content location" do
