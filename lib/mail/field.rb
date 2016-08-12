@@ -236,8 +236,8 @@ module Mail
 
       header_parts = raw_field.split('filename=')
       filename = header_parts[1]
-      filename = process_unsafe_string(filename).gsub(/(^"|"$)/, '')
-      [header_parts.first, "filename*=", Mail::Encodings.param_encode(filename),].join.encode!(Encoding::ASCII)
+      filename = unquote(process_unsafe_string(filename))
+      [header_parts.first, "filename*=", dquote(Mail::Encodings.param_encode(filename)),].join.encode!(Encoding::ASCII)
     end
 
     def process_content_type(raw_field)
@@ -254,11 +254,13 @@ module Mail
 
         raw_filename = part.sub(/^\s*(file)?name\s*=\s*/, '')
 
-        filename = process_unsafe_string(raw_filename).gsub(/(^"|"$)/, '')
+        unquoted = unquote(raw_filename)
 
-        encoded_filename = Mail::Encodings.b_value_encode(filename)
+        filename = process_unsafe_string(unquoted)
 
-        header_parts[idx] = "#{key}=\"#{encoded_filename}\""
+        encoded_filename = dquote(Mail::Encodings.b_value_encode(filename))
+
+        header_parts[idx] = "#{key}=#{encoded_filename}"
       end
 
       header_parts.join('; ')
