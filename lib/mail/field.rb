@@ -298,7 +298,7 @@ module Mail
 
         filename = process_unsafe_string(unquoted)
 
-        encoded_filename = dquote(Mail::Encodings.b_value_encode(filename))
+        encoded_filename = dquote(Mail::Encodings.decode_encode(filename, :encode))
 
         header_parts[idx] = "#{key}=#{encoded_filename}"
       end

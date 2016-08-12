@@ -236,7 +236,7 @@ describe "reading emails with attachments" do
 
     it "should not get tripped up on filenames containing control characters" do
       msg = Mail.read(fixture('emails', 'attachment_emails', 'utf8_filename_with_control_characters.eml'))
-      expect(msg.attachments.first.filename).to eq '意地悪 sample; = filename= name= "file" 笑.txt'
+      expect(msg.attachments.first.filename).to eq '意地悪 sample; = filename= name= "file" zzzz笑.txt'
     end
   end
 
