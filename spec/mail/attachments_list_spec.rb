@@ -234,6 +234,12 @@ describe "reading emails with attachments" do
       expect(msg.attachments.first.filename).to eq 'とんでもないすぐこ長い文字列.txt'
     end
 
+    it 'should be able to read a Shift-JIS filename from Content-Disposition' do
+      msg = Mail.read(fixture('emails', 'attachment_emails',
+                              'invalid_attachment_filename_encoding_shift_jis_disposition_only.eml'))
+      expect(msg.attachments.first.filename).to eq 'とんでもないすぐこ長い文字列.txt'
+    end
+
     it "should not get tripped up on filenames containing control characters" do
       msg = Mail.read(fixture('emails', 'attachment_emails', 'utf8_filename_with_control_characters.eml'))
       expect(msg.attachments.first.filename).to eq '意地悪 sample; = filename= name= "file" zzzz笑.txt'

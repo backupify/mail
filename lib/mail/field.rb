@@ -285,7 +285,9 @@ module Mail
 
         unquoted = unquote(raw_filename)
 
-        encoded = Mail::Encodings.param_encode(unquoted)
+        corrected = process_unsafe_string(unquoted)
+
+        encoded = Mail::Encodings.param_encode(corrected)
 
         header_parts[idx] = "filename*=#{encoded}"
       end
