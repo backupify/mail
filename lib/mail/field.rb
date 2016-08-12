@@ -224,7 +224,7 @@ module Mail
     def process_unsafe_string(raw_field)
       detection_obj = self.class.detector.detect(raw_field)
 
-      encoding = detection_obj.nil? ? detection_obj[:encoding] : Encoding::UTF_8
+      encoding = !detection_obj.nil? ? detection_obj[:encoding] : Encoding::UTF_8
 
       double_encode(raw_field.force_encoding(encoding), invalid: :replace, undef: :replace, replace: '_')
     end
