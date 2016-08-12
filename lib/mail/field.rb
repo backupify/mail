@@ -274,10 +274,23 @@ module Mail
       
       return raw_field if string_is_valid?(raw_field)
 
-      header_parts = raw_field.split('filename=')
-      filename = header_parts[1]
-      filename = unquote(process_unsafe_string(filename))
-      [header_parts.first, "filename*=", Mail::Encodings.param_encode(filename),].join.encode!(Encoding::ASCII)
+      header_parts = safe_split_header_components(raw_field).map { |s| s.strip }
+
+      header_parts.each_with_index do |part, idx|
+        key = part.split('=').first.strip
+
+        next unless key == 'filename'
+
+        raw_filename = part.sub(/^filename=/, '')
+
+        unquoted = unquote(raw_filename)
+
+        encoded = Mail::Encodings.param_encode(unquoted)
+
+        header_parts[idx] = "filename*=#{encoded}"
+      end
+
+      header_parts.join('; ')
     end
 
     def process_content_type(raw_field)
