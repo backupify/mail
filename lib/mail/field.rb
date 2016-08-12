@@ -221,6 +221,46 @@ module Mail
       end
     end
 
+    def safe_split_header_components(input)
+      result = []
+      buffer = ''
+      escape_mode = false
+      quoted_mode = false
+
+      input.chars.each do |c|
+        if escape_mode
+          buffer << c
+          escape_mode = false
+          next
+        end
+
+        if c == '\\'
+          escape_mode = true
+          next
+        end
+
+        if c == '"'
+          buffer << c
+          quoted_mode = !quoted_mode
+          next
+        end
+
+        if c == ';' && !quoted_mode
+          result.push(buffer)
+          buffer = ''
+          escape_mode = false
+          quoted_mode = false
+          next
+        end
+
+        buffer << c
+      end
+
+      result.push(buffer) unless buffer.length == 0
+
+      result
+    end
+
     def process_unsafe_string(raw_field)
       detection_obj = self.class.detector.detect(raw_field)
 
@@ -245,7 +285,7 @@ module Mail
 
       return raw_field if string_is_valid?(raw_field)
 
-      header_parts = raw_field.split(';').map { |s| s.strip }
+      header_parts = safe_split_header_components(raw_field).map { |s| s.strip }
 
       header_parts.each_with_index do |part, idx|
         key = part.split('=').first.strip
