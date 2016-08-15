@@ -1,4 +1,5 @@
 require 'mail/fields'
+require 'charlock_holmes'
 
 # encoding: utf-8
 module Mail
@@ -202,7 +203,129 @@ module Mail
 
     private
 
+    def self.detector
+      @char_detector ||= CharlockHolmes::EncodingDetector.new
+    end
+
+    # If the string is already of the same encoding, no encoding will take place; double-encoding forces a conversion
+    def double_encode(str, opts = {})
+      str.encode(Encoding::UTF_16LE, opts).encode(Encoding::UTF_8, opts)
+    end
+
+    def string_is_valid?(str)
+      begin
+        double_encode(str)
+        true
+      rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+        false
+      end
+    end
+
+    def safe_split_header_components(input)
+      result = []
+      buffer = ''
+      escape_mode = false
+      quoted_mode = false
+
+      input.chars.each do |c|
+        if escape_mode
+          buffer << c
+          escape_mode = false
+          next
+        end
+
+        if c == '\\'
+          escape_mode = true
+          next
+        end
+
+        if c == '"'
+          buffer << c
+          quoted_mode = !quoted_mode
+          next
+        end
+
+        if c == ';' && !quoted_mode
+          result.push(buffer)
+          buffer = ''
+          escape_mode = false
+          quoted_mode = false
+          next
+        end
+
+        buffer << c
+      end
+
+      result.push(buffer) unless buffer.length == 0
+
+      result
+    end
+
+    def process_unsafe_string(raw_field)
+      detection_obj = self.class.detector.detect(raw_field)
+
+      encoding = !detection_obj.nil? ? detection_obj[:encoding] : Encoding::UTF_8
+
+      double_encode(raw_field.force_encoding(encoding), invalid: :replace, undef: :replace, replace: '_')
+    end
+
+    def process_content_disposition(raw_field)
+      return raw_field unless raw_field.start_with?('Content-Disposition') && raw_field.include?('filename=')
+      
+      return raw_field if string_is_valid?(raw_field)
+
+      header_parts = safe_split_header_components(raw_field).map { |s| s.strip }
+
+      header_parts.each_with_index do |part, idx|
+        key = part.split('=').first.strip
+
+        next unless key == 'filename'
+
+        raw_filename = part.sub(/^filename=/, '')
+
+        unquoted = unquote(raw_filename)
+
+        corrected = process_unsafe_string(unquoted)
+
+        encoded = Mail::Encodings.param_encode(corrected)
+
+        header_parts[idx] = "filename*=#{encoded}"
+      end
+
+      header_parts.join('; ')
+    end
+
+    def process_content_type(raw_field)
+      return raw_field unless raw_field.start_with?('Content-Type') && raw_field.include?('name=')
+
+      return raw_field if string_is_valid?(raw_field)
+
+      header_parts = safe_split_header_components(raw_field).map { |s| s.strip }
+
+      header_parts.each_with_index do |part, idx|
+        key = part.split('=').first.strip
+
+        next unless %w(filename name).include?(key)
+
+        raw_filename = part.sub(/^\s*(file)?name\s*=\s*/, '')
+
+        unquoted = unquote(raw_filename)
+
+        filename = process_unsafe_string(unquoted)
+
+        encoded_filename = dquote(Mail::Encodings.decode_encode(filename, :encode))
+
+        header_parts[idx] = "#{key}=#{encoded_filename}"
+      end
+
+      header_parts.join('; ')
+    end
+
     def split(raw_field)
+      raw_field = process_content_disposition(raw_field)
+
+      raw_field = process_content_type(raw_field)
+
       match_data = raw_field.mb_chars.match(FIELD_SPLIT)
       [match_data[1].to_s.mb_chars.strip, match_data[2].to_s.mb_chars.strip.to_s]
     rescue

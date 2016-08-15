@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.rdoc_options << '--exclude' << 'lib/mail/values/unicode_tables.dat'
 
   s.add_dependency('mime-types', [">= 1.16", "< 3"])
+  s.add_dependency('charlock_holmes', '>= 0.7.3')
 
   s.add_development_dependency('bundler', '>= 1.0.3')
   s.add_development_dependency('rake', '> 0.8.7')

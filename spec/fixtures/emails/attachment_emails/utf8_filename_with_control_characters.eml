@@ -1,0 +1,30 @@
+Subject: Test message
+References: <e4f19658-7af0-5137-682c-fb7ea8b71d1b@datto.com>
+To: luser@datto.com
+From: "A. User" <auser@datto.com>
+X-Forwarded-Message-Id: <e4f19658-7af0-5137-682c-fb7ea8b71d1b@datto.com>
+Message-ID: <04e4c41f-c77a-a688-8a95-3159eb30954b@datto.com>
+Date: Thu, 11 Aug 2016 11:41:56 -0400
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:45.0)
+ Gecko/20100101 Thunderbird/45.2.0
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------BE748925EE50C6B7F60FFA05"
+
+This is a multi-part message in MIME format.
+--------------BE748925EE50C6B7F60FFA05
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Just a test.
+
+--------------BE748925EE50C6B7F60FFA05
+Content-Type: text/plain; charset=UTF-8;
+ name="意地悪 sample; = filename= name= \"file\" zzzz笑.txt";
+ filename="意地悪 sample; = filename= name= \"file\" zzzz笑.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="意地悪 sample; = filename= name= \"file\" zzzz笑.txt"
+
+44OG44K544OI
+--------------BE748925EE50C6B7F60FFA05--
