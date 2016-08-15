@@ -5,7 +5,7 @@ gemspec
 gem "tlsmail", "~> 0.0.1" if RUBY_VERSION <= "1.8.6"
 gem "jruby-openssl", :platforms => :jruby
 
-gem 'charlock_holmes', '0.7.3'
+gem 'charlock_holmes'
 
 group :development, :test do
   gem "appraisal", "~> 1.0"
