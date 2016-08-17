@@ -4,9 +4,9 @@ module Mail
     MAJOR = 2
     MINOR = 6
     PATCH = 3
-    BUILD = nil
+    BFY_PATCH = 2
 
-    STRING = [MAJOR, MINOR, PATCH, BUILD].compact.join('.')
+    STRING = [MAJOR, MINOR, PATCH, BFY_PATCH].compact.join('.')
 
     def self.version
       STRING
