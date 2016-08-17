@@ -266,7 +266,14 @@ module Mail
 
       encoding = !detection_obj.nil? ? detection_obj[:encoding] : Encoding::UTF_8
 
-      double_encode(raw_field.force_encoding(encoding), invalid: :replace, undef: :replace, replace: '_')
+      begin
+        raw_field.force_encoding(encoding)
+      rescue ArgumentError
+        # Ruby doesn't recognize the detector's suggestion.
+        raw_field.force_encoding(Encoding::UTF_8)
+      end
+
+      double_encode(raw_field, invalid: :replace, undef: :replace, replace: '_')
     end
 
     def process_content_disposition(raw_field)
